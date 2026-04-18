@@ -100,7 +100,13 @@ public class PlayerController : MonoBehaviour
 
 	void Die()
 	{
+		if (GameManager.Instance.IsGameWon())
+		{
+			return;
+		}
+
 		dead = true;
+		GameManager.Instance.PlayerDied();
 
 		rb.linearDamping = 0f;
 		rb.constraints = RigidbodyConstraints.None;
@@ -108,7 +114,6 @@ public class PlayerController : MonoBehaviour
 		rb.AddForce(force, ForceMode.Impulse);
 		rb.AddTorque(Random.insideUnitSphere * 2f, ForceMode.Impulse);
 
-		Debug.Log("Player exploded for moving on red!");
 		_audio.PlayOneShot(explosionSfx);
 	}
 
