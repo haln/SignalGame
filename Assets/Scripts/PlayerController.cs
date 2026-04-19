@@ -62,7 +62,9 @@ public class PlayerController : MonoBehaviour
 		{
 			stepTimer = stepDelay;
 			AudioClip stepSound = stepSfx[Random.Range(0, stepSfx.Count)];
-			_audio.PlayOneShot(stepSound);
+			_audio.pitch = Random.Range(0.8f, 1.2f);
+			var volume = Random.Range(0.25f, 0.35f);
+			_audio.PlayOneShot(stepSound, volume);
 		}
 	}
 
