@@ -1,4 +1,3 @@
-using NUnit.Framework;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -25,6 +24,9 @@ public class PlayerController : MonoBehaviour
 	[SerializeField] private float bobAmplitude = 0.1f;
 	[SerializeField] private float bobSettleSpeed = 8f;
 
+	[Header("Menu Stuff")]
+	[SerializeField] private GameObject settingsPanel;
+
 	private AudioSource _audio;
 	private Rigidbody rb;
 	private InputSystem_Actions inputActions;
@@ -38,6 +40,9 @@ public class PlayerController : MonoBehaviour
 	private float bobTimer = 0f;
 	private float currentBobAmount = 0f;
 
+	private float menuCooldown = 1f;
+	private float currentMenuCooldown = 0f;
+
 	void Awake()
 	{
 		_audio = GetComponent<AudioSource>();
@@ -48,17 +53,39 @@ public class PlayerController : MonoBehaviour
 	void OnEnable()
 	{
 		inputActions.Player.Enable();
+		inputActions.Global.Enable();
 	}
 
 	private void OnDisable()
 	{
 		inputActions.Player.Disable();
+		inputActions.Global.Disable();
 	}
 
 	private void Update()
 	{
 		UpdateBob();
 		UpdateStepSfx();
+		HandleMenu();
+	}
+
+	private void HandleMenu()
+	{
+		if (currentMenuCooldown > 0f)
+		{
+			currentMenuCooldown -= Time.deltaTime;
+			return;
+		}
+
+		bool pressedMenuButton = inputActions.Global.Menu.IsPressed();
+		if (!pressedMenuButton)
+		{
+			return;
+		}
+
+		currentMenuCooldown = menuCooldown;
+		settingsPanel.SetActive(!settingsPanel.activeSelf);
+		Cursor.lockState = settingsPanel.activeSelf ? CursorLockMode.None : CursorLockMode.Locked;
 	}
 
 	private void UpdateBob()
@@ -119,7 +146,7 @@ public class PlayerController : MonoBehaviour
 		}
 
 		moveInput = inputActions.Player.Move.ReadValue<Vector2>();
-		if (moveInput.sqrMagnitude > 0.01f && signal != null && signal.CurrentState == SignalState.Red)
+		if (isMoving() && signal != null && signal.CurrentState == SignalState.Red && !GameManager.Instance.IsGameWon())
 		{
 			Die();
 			return;
