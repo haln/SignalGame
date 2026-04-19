@@ -19,6 +19,12 @@ public class PlayerController : MonoBehaviour
 	[SerializeField] private List<AudioClip> stepSfx;
 	[SerializeField] private float stepDelay = 0.3f;
 
+	[Header("Body Bobbing")]
+	[SerializeField] private Transform playerVisual;
+	[SerializeField] private float bobFrequency = 5f;
+	[SerializeField] private float bobAmplitude = 0.1f;
+	[SerializeField] private float bobSettleSpeed = 8f;
+
 	private AudioSource _audio;
 	private Rigidbody rb;
 	private InputSystem_Actions inputActions;
@@ -28,6 +34,9 @@ public class PlayerController : MonoBehaviour
 	private bool dead = false;
 	private float groundedTimer = 0f;
 	private bool settling = false;
+
+	private float bobTimer = 0f;
+	private float currentBobAmount = 0f;
 
 	void Awake()
 	{
@@ -48,10 +57,30 @@ public class PlayerController : MonoBehaviour
 
 	private void Update()
 	{
-		moveInput = inputActions.Player.Move.ReadValue<Vector2>();
+		UpdateBob();
+		UpdateStepSfx();
+	}
 
+	private void UpdateBob()
+	{
+		if (isMoving())
+		{
+			bobTimer += Time.deltaTime * bobFrequency;
+			currentBobAmount = Mathf.Lerp(currentBobAmount, bobAmplitude, Time.deltaTime * bobSettleSpeed);
+		}
+		else
+		{
+			currentBobAmount = Mathf.Lerp(currentBobAmount, 0f, Time.deltaTime * bobSettleSpeed);
+		}
+
+		float bobOffset = Mathf.Sin(bobTimer) * currentBobAmount;
+		playerVisual.localPosition = new Vector3(0f, bobOffset, 0f);
+	}
+
+	private void UpdateStepSfx()
+	{
 		// Check if player moving
-		if (moveInput.sqrMagnitude <= 0.01f)
+		if (!isMoving())
 		{
 			return;
 		}
@@ -66,6 +95,12 @@ public class PlayerController : MonoBehaviour
 			var volume = Random.Range(0.25f, 0.35f);
 			_audio.PlayOneShot(stepSound, volume);
 		}
+	} 
+
+	private bool isMoving()
+	{
+		moveInput = inputActions.Player.Move.ReadValue<Vector2>();
+		return moveInput.sqrMagnitude > 0.01f;
 	}
 
 	void FixedUpdate()
