@@ -16,7 +16,6 @@ public class CameraFollow : MonoBehaviour
 	void Awake()
 	{
 		inputActions = new InputSystem_Actions();
-		Cursor.lockState = CursorLockMode.Locked;
 	}
 
 	private void OnEnable()

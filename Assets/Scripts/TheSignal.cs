@@ -1,8 +1,9 @@
 using System;
 using System.Collections;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
-public enum SignalState { Green, Yellow2ToRed, Yellow1ToRed, Red, Yellow1ToGreen, Yellow2ToGreen }
+public enum SignalState { Green, Yellow2ToRed, Yellow1ToRed, Red }
 
 public class TheSignal : MonoBehaviour
 {
@@ -14,7 +15,7 @@ public class TheSignal : MonoBehaviour
 
     [Header("Durations (seconds)")]
     public float greenDuration = 5f;
-    public float yellowDuration = 1f;
+    public float yellowDuration = 0.5f;
     public float redDuration = 5f;
 
     [Header("Audio")]
@@ -45,14 +46,16 @@ public class TheSignal : MonoBehaviour
 			yield return Transition(SignalState.Yellow2ToRed, yellowDuration);
 			yield return Transition(SignalState.Yellow1ToRed, yellowDuration);
 			yield return Transition(SignalState.Red, redDuration);
-			yield return Transition(SignalState.Yellow1ToGreen, yellowDuration);
-			yield return Transition(SignalState.Yellow2ToGreen, yellowDuration);
 		}
     }
 
     IEnumerator Transition(SignalState state, float duration)
     {
         SetState(state);
+        if (state == SignalState.Green || state == SignalState.Red)
+        {
+            duration = Random.Range(1, duration);
+        }
         yield return new WaitForSeconds(duration);
     }
 
@@ -72,10 +75,8 @@ public class TheSignal : MonoBehaviour
                 SetEmission(redLight, Color.red);
                 break;
             case SignalState.Yellow1ToRed:
-            case SignalState.Yellow1ToGreen:
                 SetEmission(yellowLight1, Color.yellow);
                 break;
-            case SignalState.Yellow2ToGreen:
             case SignalState.Yellow2ToRed:
                 SetEmission(yellowLight2, Color.yellow);
                 break;
@@ -88,8 +89,6 @@ public class TheSignal : MonoBehaviour
         {
             SignalState.Red => sfxRed,
             SignalState.Green => sfxGreen,
-            SignalState.Yellow1ToGreen or
-            SignalState.Yellow2ToGreen or
             SignalState.Yellow1ToRed or
             SignalState.Yellow2ToRed => sfxYellow,
             _ => null

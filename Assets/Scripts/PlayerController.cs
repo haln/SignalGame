@@ -12,6 +12,8 @@ public class PlayerController : MonoBehaviour
 	[Header("Death Stuff")]
 	[SerializeField] private TheSignal signal;
 	[SerializeField] private float settleDelay = 2f;
+	[SerializeField] private GameObject explosionPrefab;
+	[SerializeField] private GameObject bombObject;
 
 	[Header("Audio")]
 	[SerializeField] private AudioClip explosionSfx;
@@ -23,9 +25,6 @@ public class PlayerController : MonoBehaviour
 	[SerializeField] private float bobFrequency = 5f;
 	[SerializeField] private float bobAmplitude = 0.1f;
 	[SerializeField] private float bobSettleSpeed = 8f;
-
-	[Header("Menu Stuff")]
-	[SerializeField] private GameObject settingsPanel;
 
 	private AudioSource _audio;
 	private Rigidbody rb;
@@ -40,9 +39,6 @@ public class PlayerController : MonoBehaviour
 	private float bobTimer = 0f;
 	private float currentBobAmount = 0f;
 
-	private float menuCooldown = 1f;
-	private float currentMenuCooldown = 0f;
-
 	void Awake()
 	{
 		_audio = GetComponent<AudioSource>();
@@ -53,39 +49,17 @@ public class PlayerController : MonoBehaviour
 	void OnEnable()
 	{
 		inputActions.Player.Enable();
-		inputActions.Global.Enable();
 	}
 
 	private void OnDisable()
 	{
 		inputActions.Player.Disable();
-		inputActions.Global.Disable();
 	}
 
 	private void Update()
 	{
 		UpdateBob();
 		UpdateStepSfx();
-		HandleMenu();
-	}
-
-	private void HandleMenu()
-	{
-		if (currentMenuCooldown > 0f)
-		{
-			currentMenuCooldown -= Time.deltaTime;
-			return;
-		}
-
-		bool pressedMenuButton = inputActions.Global.Menu.IsPressed();
-		if (!pressedMenuButton)
-		{
-			return;
-		}
-
-		currentMenuCooldown = menuCooldown;
-		settingsPanel.SetActive(!settingsPanel.activeSelf);
-		Cursor.lockState = settingsPanel.activeSelf ? CursorLockMode.None : CursorLockMode.Locked;
 	}
 
 	private void UpdateBob()
@@ -179,6 +153,8 @@ public class PlayerController : MonoBehaviour
 		rb.AddTorque(Random.insideUnitSphere * 2f, ForceMode.Impulse);
 
 		_audio.PlayOneShot(explosionSfx);
+		Instantiate(explosionPrefab, transform.position, Quaternion.identity);
+		bombObject.SetActive(false);
 	}
 
 	private void OnCollisionStay(Collision collision)
